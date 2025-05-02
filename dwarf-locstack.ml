@@ -16,6 +16,7 @@ type context_item =
   | TargetMem of int * data   (* Address space, contents.  *)
   | TargetReg of int * data   (* Register num, contents.  *)
   | Lane of int               (* Selected lane.  *)
+  | Object of location        (* Current object.  *)
 
 (* Virtual storage.  *)
 and storage =
@@ -62,6 +63,13 @@ let rec lane context =
   | _::context' -> lane context'
 ;;
 
+let rec objekt context =
+  match context with
+  | [] -> failwith "object not found in context"
+  | Object(loc)::context' -> loc
+  | _::context' -> objekt context'
+;;
+
 (* Element kinds for the DWARF expression evaluation stack.
    A stack is simply a list of stack elements.  *)
 type stack_element =
@@ -85,6 +93,7 @@ type dwarf_op =
   | DW_OP_implicit_pointer of (dwarf_op list) * int
   | DW_OP_composite
   | DW_OP_piece of int
+  | DW_OP_push_object_location
 
   | DW_OP_deref
   | DW_OP_offset
@@ -235,6 +244,8 @@ let rec eval op stack context =
             in Loc(Composite(new_part::parts), off)::stack'
 
       | _ -> eval_error op stack)
+
+  | DW_OP_push_object_location -> Loc(objekt context)::stack
 
   | DW_OP_deref ->
      (match stack with
@@ -415,3 +426,10 @@ let s_ptr_deref_val = dbg_deref s_ptr_loc context;;
 (* iptr_s is an implicit pointer to s above.  *)
 let iptr_s_locexpr = [DW_OP_implicit_pointer (s_locexpr, 0)];;
 let iptr_s_loc = eval_to_loc iptr_s_locexpr context;;
+
+(* ... this.r3 ...  *)
+let r3_data_member_locexpr = [DW_OP_push_object_location;
+                              DW_OP_const 12;
+                              DW_OP_offset];;
+let r3_data_member_loc = eval_to_loc r3_data_member_locexpr (Object(s_loc)::context);;
+let r3_data_member_val = fetch_int context r3_data_member_loc;;
