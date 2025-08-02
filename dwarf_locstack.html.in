@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>DW_OP_overlay playground</title>
+<style>
+html {
+    font-family: Calibri, sans-serif;
+}
+.center {
+    margin-left: auto;
+    margin-right: auto;
+    padding: 1% 5%;
+}
+input[type="range"] {
+    width: 100%;
+}
+.box {
+    border: 1px solid black;
+    height: 1em;
+    display: inline-block;
+    position: relative;
+}
+.box > span {
+    writing-mode: vertical-lr;
+    position: absolute;
+    top: 1.1em;
+}
+</style>
+</head>
+<body>
+<div class="center">
+    <label for="overlay_offset_in">Overlay Offset:</label>
+    <input id="overlay_offset_in" name="overlay_offset_in" type="range" min="0" max="32">
+    <label for="overlay_size_in">Overlay Size:</label>
+    <input id="overlay_size_in" name="overlay_size_in" type="range" min="0" max="32">
+    <div id="out"></div>
+</div>
+</body>
+<script src="dwarf_locstack.js"></script>
+</html>

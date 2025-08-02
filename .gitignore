@@ -1,1 +1,7 @@
 *~
+*.byte
+*.cmi
+*.cmo
+*.html
+*.js
+*.map
