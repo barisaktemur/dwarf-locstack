@@ -27,6 +27,36 @@ and storage =
 (* Location is an offset into a storage.  *)
 and location = storage * int
 
+(* Common functions *)
+let compare_parts (s1, e1, _) (s2, e2, _) = if s1 == s2 then e1 - e2 else s1 - s2
+let sort_parts parts = List.sort compare_parts parts
+
+let rec string_of_context_item ci =
+  let open Printf in
+  match ci with
+  | TargetMem(sp, data) -> sprintf "{MEM:%n:%s}" sp (String.escaped data)
+  | TargetReg(n, data) -> sprintf "{REG:%n:%s}" n (String.escaped data)
+  | Lane(n) -> sprintf "{LANE:%n}" n
+  | Object(loc) -> sprintf "{OBJECT:%s}" (string_of_location loc)
+
+and string_of_part (s, e, loc) =
+  Printf.sprintf "[%n:%n:%s]" s e (string_of_location loc)
+
+and string_of_storage s =
+  let open Printf in
+  match s with
+  | Mem(addr_space) -> sprintf "{mem:%n}" addr_space
+  | Reg(n) -> sprintf "{reg:%n}" n
+  | Undefined -> "{undef}"
+  | ImpData(data) -> sprintf "{impdata:%s}" (String.escaped data)
+  | ImpPointer(loc) -> sprintf "{impptr:%s}" (string_of_location loc)
+  | Composite(parts) ->
+      let sorted_part_strings = List.map string_of_part (sort_parts parts) in
+      sprintf "{composite:%s}" (String.concat "" sorted_part_strings)
+
+and string_of_location (s, o) =
+  Printf.sprintf "(%s:%n)" (string_of_storage s) o
+
 (* Context accessors for convenience.  *)
 let rec mem_data context addr_space =
   match context with
@@ -343,6 +373,38 @@ let test value expectation message =
       (num_fail := !num_fail + 1; "FAIL")
   in
     Printf.printf "%s: %s\n" result message
+
+
+(* string_of_X tests *)
+let _ =
+  test (string_of_context_item (TargetMem(1, mem_contents)))
+    "{MEM:1:d\\000\\000\\000h\\000\\000\\000l\\000\\000\\000p\\000\\000\\000t\\000\\000\\000x\\000\\000\\00001234567XXXXCDEF}"
+    "string of TargetMem";
+  test (string_of_context_item (TargetReg(2, int_to_data 1)))
+    "{REG:2:\\001\\000\\000\\000}"
+    "string of TargetReg";
+  test (string_of_context_item (Lane(3)))
+    "{LANE:3}"
+    "string of Lane";
+  test (string_of_context_item (Object((Mem 0, 0))))
+    "{OBJECT:({mem:0}:0)}"
+    "string of Object";
+  test (string_of_storage (Mem(6))) "{mem:6}" "string of Mem";
+  test (string_of_storage (Reg(7))) "{reg:7}" "string of Reg";
+  test (string_of_storage (Undefined)) "{undef}" "string of Undefined";
+  test (string_of_storage (ImpData(int_to_data 3283)))
+    "{impdata:\\211\\012\\000\\000}"
+    "string of ImpData";
+  test (string_of_location ((Mem(6), 0))) "({mem:6}:0)" "string of location";
+  test (string_of_storage (ImpPointer((Reg 1, 0))))
+    "{impptr:({reg:1}:0)}"
+    "string of ImpPointer";
+  let part1 = (0, 4, (Reg 1, 0)) in
+  let part2 = (4, 8, (Reg 2, 0)) in
+  let parts = [part1; part2] in
+  test (string_of_storage (Composite(parts)))
+    "{composite:[0:4:({reg:1}:0)][4:8:({reg:2}:0)]}"
+    "string of Composite"
 
 (* Simple arithmethic exp test.  *)
 let _ =
