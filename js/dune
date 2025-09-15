@@ -1,0 +1,17 @@
+(library
+  (name dwarf_locstack_sexp)
+  (modules dwarf_locstack_sexp)
+  (libraries dwarf_locstack sexplib)
+  (preprocess (staged_pps ppx_import ppx_sexp_conv)))
+(executable
+  (name dwarf_locstack_js)
+  (modules dwarf_locstack_js)
+  (libraries dwarf_locstack_sexp sexplib)
+  (modes js)
+  (preprocess (pps js_of_ocaml-ppx)))
+(rule
+  (target dwarf_locstack.html)
+  (deps dwarf_locstack.html.in dwarf_locstack_js.bc.js postprocess.sh)
+  (action
+    (chdir %{workspace_root}/js
+           (run ./postprocess.sh %{target} %{profile} %{deps}))))

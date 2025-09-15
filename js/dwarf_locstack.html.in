@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Dwarf_locstack playground</title>
+<style>
+html {
+    font-family: Calibri, sans-serif;
+}
+.center {
+    margin-left: auto;
+    margin-right: auto;
+    padding: 1% 5%;
+}
+input[type="range"] {
+    width: 100%;
+}
+button {
+    padding: 1em;
+}
+footer {
+    color: gray;
+    margin-top: 2em;
+    border-top: 1px solid gray;
+}
+</style>
+</head>
+<body>
+<div class="center">
+    <h2>Context:</h2>
+    <pre id="context"></pre>
+    <h2>Expression:</h2>
+    <textarea id="input" rows="16" cols="80"
+        autocapitalize="false" autocomplete="false" autocorrect="false"
+        autofocus="true" required="true" spellcheck="false" wrap="off"
+        placeholder="; Expression to evaluate:&#10;(DW_OP_reg 4)&#10;(DW_OP_const 1)&#10;DW_OP_offset&#10;; ..."></textarea>
+    <div><button id="eval">Evaluate</button></div>
+    <h2>Result:</h2>
+    <pre id="output"></pre>
+    <footer>
+        Built from <code>GIT_REVISION</code> at <code>CURRENT_TIME</code>
+    </footer>
+</div>
+</body>
+<script defer>
+    let input = document.getElementById('input');
+    let evalButton = document.getElementById('eval');
+    if (window.location.hash)
+        input.value = decodeURIComponent(window.location.hash.substr(1));
+    evalButton.addEventListener('click', (ev) => { window.location.hash = encodeURIComponent(input.value); });
+</script>
+<script defer src="dwarf_locstack_js.bc.js"></script>
+</html>

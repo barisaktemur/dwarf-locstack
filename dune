@@ -1,0 +1,5 @@
+(library
+  (name dwarf_locstack)
+  (public_name dwarf_locstack))
+(env
+  (dev (flags (:standard -warn-error -A -w -27-37-38))))

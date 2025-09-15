@@ -98,7 +98,7 @@ type dwarf_op =
   | DW_OP_offset
 
 (* What is the size of a virtual storage?  *)
-let rec data_size storage context =
+let data_size storage context =
   match storage with
   | Mem(addr_space) -> Int.max_int
   | Reg(n) -> String.length (reg_data context n)
@@ -479,7 +479,7 @@ let test value expectation message =
 (* Expect an evaluation error.  *)
 let test_error lambda message =
   try
-    lambda ();
+    let _ = lambda () in
     test 1 0 message
   with
   | EvalError _  -> test 1 1 message
