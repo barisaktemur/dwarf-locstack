@@ -20,8 +20,6 @@ button {
 }
 footer {
     color: gray;
-    margin-top: 2em;
-    border-top: 1px solid gray;
 }
 </style>
 </head>
@@ -33,12 +31,37 @@ footer {
     <textarea id="input" rows="16" cols="80"
         autocapitalize="false" autocomplete="false" autocorrect="false"
         autofocus="true" required="true" spellcheck="false" wrap="off"
-        placeholder="; Expression to evaluate:&#10;(DW_OP_reg 4)&#10;(DW_OP_const 1)&#10;DW_OP_offset&#10;; ..."></textarea>
+        placeholder="; Expression to evaluate:&#10;DW_OP_reg 4&#10;DW_OP_const 1&#10;DW_OP_offset&#10;; ..."></textarea>
     <div><button id="eval">Evaluate</button></div>
+    <h2>Preprocessed Input:</h2>
+    <pre id="preprocessed"></pre>
     <h2>Result:</h2>
     <pre id="output"></pre>
+    <hr style="margin-top: 2em;">
+    <h2>Notes</h2>
+    <h3>Source</h3>
+    <p>
+    This is generated from Baris' interpreter at
+    <a href="https://github.com/barisaktemur/dwarf-locstack/blob/main/dwarf_locstack.ml">barisaktemur/dwarf-locstack</a>
+    using <a href="https://github.com/ocsigen/js_of_ocaml">ocsigen/js_of_ocaml</a>.
+    The set of implemented operations is the same as the set of constructors for <tt>type dwarf_op</tt> there.
+    </p>
+    <h3>Input Syntax</h3>
+    <p>
+    The (simplified) input format is one DWARF operation per line, with
+    space-delimited parameters. Comments begin with <tt>;</tt> and extend to
+    the end of the line.
+    </p>
+    <p>
+    The full expression syntax is just an <tt>sexp</tt> list as described at
+    <a href="https://github.com/janestreet/sexplib">janestreet/sexplib</a>.
+    A preprocessor implements the simplified format and generates the canonical
+    <tt>sexp</tt> form. If any non-comment parenthesis character (either
+    "<tt>(</tt>" or "<tt>)</tt>") is present the preprocessor is disabled.
+    </p>
+    <hr>
     <footer>
-        Built from <code>GIT_REVISION</code> at <code>CURRENT_TIME</code>
+    <p>Built from <code>GIT_REVISION</code> at <code>CURRENT_TIME</code></p>
     </footer>
 </div>
 </body>
