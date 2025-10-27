@@ -12,9 +12,16 @@ PROFILE=$1; shift
 DEP_HTML=$1; shift
 DEP_JS=$1; shift
 
-case "$PROFILE" in
-release)
-    awk_script="
+SUPPORTED_OPS=$(awk '
+/^type dwarf_op =/ { printing = 1; next; }
+printing==1 && /^$/ { next; }
+printing==1 && /^ *\|/ { print $0; next; }
+{ printing = 0; }' \
+../dwarf_locstack.ml)
+
+awk_script=''
+if [[ "$PROFILE" = release ]]; then
+    awk_script+="
         /^<script defer src/ {
             print \"<script type=\\\"module\\\">\"
             while (getline line < \"$DEP_JS\") {
@@ -23,15 +30,17 @@ release)
             print \"</script>\"
             next
         }
-        { print }
     "
-    ;;
-*)
-    awk_script='{ print }'
-    ;;
-esac
+fi
 
-awk "$awk_script" "$DEP_HTML" \
+awk_script+="
+/SUPPORTED_OPS/ {
+    print supported_ops
+    next
+}
+{ print }"
+
+awk -v supported_ops="$SUPPORTED_OPS" "$awk_script" "$DEP_HTML" \
     | sed \
         -e "s/GIT_REVISION/$(git describe --match='' --always --dirty)/" \
         -e "s/CURRENT_TIME/$(date -u -Iminutes)/" \

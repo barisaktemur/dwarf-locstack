@@ -226,8 +226,9 @@ let as_loc element =
   | Loc(loc) -> loc
   | Val(i) -> (Mem 0, i)
 
-(* Evaluate a single DWARF operator using the given stack.  *)
-let rec eval op stack context =
+(* Helper for eval_one which handles ops that do not need to consider or modify
+   the list of ops in the expression.  *)
+let rec eval_one_simple op stack context =
   match op with
   | DW_OP_const4s(x) -> Val(x)::stack
 
@@ -514,28 +515,34 @@ let rec eval op stack context =
   (* Handled in the upper level.  *)
   | DW_OP_skip(n) | DW_OP_bra(n) -> stack
 
-(* Evaluate the given list of DWARF operators using the given stack.  *)
-and eval_all ops stack context =
+(* Evaluate a single DWARF operator using the given stack.  *)
+and eval_one ops stack context =
   match ops with
-  | [] -> stack
+  | [] -> (ops, stack, context)
 
   | DW_OP_skip(n)::ops' ->
      (* DW_OP_skip is a control flow operator that requires access to
         the complete DWARF expression to be able skip a number of
         operators.  Hence, handle it here.  Without loss of
         generality, we support skipping forward only.  *)
-     eval_all (discard n ops') stack context
+     ((discard n ops'), stack, context)
 
   | DW_OP_bra(n)::ops' ->
      (match stack with
       | v::stack' ->
          if as_value v == 0 then
-           eval_all ops' stack' context
+           (ops', stack', context)
          else
-           eval_all (discard n ops') stack' context
+           ((discard n ops'), stack', context)
       | _ -> eval_error (DW_OP_bra(n)) stack)
 
-  | op::ops' -> eval_all ops' (eval op stack context) context
+  | op::ops' -> (ops', (eval_one_simple op stack context), context)
+
+(* Evaluate the given list of DWARF operators using the given stack.  *)
+and eval_all ops stack context =
+  match eval_one ops stack context with
+  | ([], stack', _) -> stack'
+  | (ops', stack', context') -> eval_all ops' stack' context'
 
 (* Evaluate the given list of DWARF operators using an initially empty
    stack, return the top element.  *)
