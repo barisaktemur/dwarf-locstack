@@ -2,6 +2,7 @@ open Dwarf_locstack_sexp
 open Js_of_ocaml
 open Dom_html
 open Sexplib
+open Printf
 
 (* Shorthand for coerced getElementById with assertion *)
 let get id coerce_to = Option.get (getElementById_coerce id coerce_to)
@@ -11,6 +12,16 @@ let noncomment_part line =
   List.nth_opt (String.split_on_char ';' line) 0
   |> Option.map String.trim
   |> function | Some "" -> None | s -> s
+
+let context_re = Str.regexp ") ("
+let context_default = (Sexp.to_string_hum (sexp_of_context_t Dwarf_locstack.context))
+  |> Str.global_replace context_re ")\n ("
+let input_default =
+"DW_OP_reg4 ; edit me!
+DW_OP_lit1
+DW_OP_offset
+DW_OP_deref
+DW_OP_stack_value"
 
 (*
   Heuristically "Sexp-ify" the input.
@@ -46,21 +57,75 @@ let preprocess input =
     |> String.concat "\n"
     |> (fun s -> "(" ^ s ^ ")")
 
+let span klass inner_html =
+  sprintf {|<span class="%s">%s</span>|} klass inner_html
+
+let rec html_of_stack_element elem =
+  let html = match elem with
+  | Val v ->
+      span "stack_element_kind" "Val" ^
+      html_of_value v
+  | Loc l ->
+      span "stack_element_kind" "Loc" ^
+      html_of_location l
+  in
+  span "stack_element" html
+and html_of_value v =
+  span "value" (string_of_int v)
+and html_of_location (storage, offset) =
+  span "location_offset" (string_of_int offset) ^
+  span "location_storage" (html_of_storage storage)
+and html_of_storage storage =
+  match storage with
+  | Mem aspace -> span "storage" (sprintf "Mem(aspace=%d)" aspace)
+  | Reg number -> span "storage" (sprintf "Reg(%d)" number)
+  | Undefined -> span "storage" "Undef"
+  | ImpData data -> span "storage" (sprintf "Implicit(value=%s)" (String.escaped data))
+  | ImpPointer loc -> span "storage" (sprintf "Implicit(pointer=%s)" (html_of_location loc))
+  | Composite parts ->
+      let sorted_parts = List.sort (fun (s1, _, _) (s2, _, _) -> s1 - s2) parts in
+      span "storage" "Composite" ^
+      span "composite_parts" (List.fold_left (fun acc p -> acc ^ html_of_part p) "" sorted_parts)
+and html_of_part (s, e, loc) =
+  span "composite_part" (
+    span "composite_part_start" (string_of_int s) ^
+    span "composite_part_end" (string_of_int e) ^
+    html_of_location loc
+  )
+
+let rec build_output_html context ops =
+  build_output_html_impl "" context ops []
+and build_output_html_impl result context ops stack =
+  let (ops', stack', context') = Dwarf_locstack.eval_one ops stack context in
+  let result' = result ^
+    span "trace_step" (
+      span "trace_step_op" (Sexp.to_string_hum (sexp_of_dwarf_op (List.hd ops))) ^
+      span "trace_step_stack" (List.fold_left (fun acc e -> acc ^ html_of_stack_element e) "" stack')
+    )
+  in
+  match ops' with
+  | [] -> result' ^ span "trace_result" (html_of_location (Dwarf_locstack.as_loc (List.hd stack')))
+  | _ -> build_output_html_impl result' context' ops' stack'
+
 let _ =
-  let context = get "context" CoerceTo.element in
+  let context = get "context" CoerceTo.textarea in
   let input = get "input" CoerceTo.textarea in
   let eval = get "eval" CoerceTo.button in
   let preprocessed = get "preprocessed" CoerceTo.element in
   let output = get "output" CoerceTo.element in
-  context##.innerHTML := (Js.string (Sexp.to_string_hum (sexp_of_context_t Dwarf_locstack.context)));
+  let arguments = Url.Current.arguments in
+  let initial_context = List.assoc_opt "context" arguments |> Option.value ~default:context_default in
+  let initial_input = List.assoc_opt "input" arguments |> Option.value ~default:input_default in
+  context##.innerHTML := (Js.string initial_context);
+  input##.innerHTML := (Js.string initial_input);
   let render _ =
+    let context_sexp_string = Js.to_string context##.value in
     let locexpr_sexp_string = preprocess (Js.to_string input##.value) in
     let output_html =
       try
+        let ctx = (context_t_of_sexp (Parsexp.Single.parse_string_exn context_sexp_string)) in
         let locexpr = (locexpr_t_of_sexp (Parsexp.Single.parse_string_exn locexpr_sexp_string)) in
-        let result_loc = Dwarf_locstack.eval_to_loc locexpr Dwarf_locstack.context  in
-        let result_loc_sexp = sexp_of_location result_loc in
-        Sexp.to_string_hum result_loc_sexp
+        build_output_html ctx locexpr
       with e -> Printexc.to_string e in
     preprocessed##.innerHTML := Js.string locexpr_sexp_string;
     output##.innerHTML := Js.string output_html;

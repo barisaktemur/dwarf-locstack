@@ -226,8 +226,9 @@ let as_loc element =
   | Loc(loc) -> loc
   | Val(i) -> (Mem 0, i)
 
-(* Evaluate a single DWARF operator using the given stack.  *)
-let rec eval op stack context =
+(* Helper for eval_one which handles ops that do not need to consider or modify
+   the list of ops in the expression.  *)
+let rec eval_one_simple op stack context =
   match op with
   | DW_OP_const4s(x) -> Val(x)::stack
 
@@ -375,38 +376,38 @@ let rec eval op stack context =
      let reg_contents = fetch_int context ((Reg n), 0)
      in let address = reg_contents + offset
         in Loc(Mem 0, address)::stack
-  | DW_OP_breg0  offset -> eval (DW_OP_bregx(0,  offset)) stack context
-  | DW_OP_breg1  offset -> eval (DW_OP_bregx(1,  offset)) stack context
-  | DW_OP_breg2  offset -> eval (DW_OP_bregx(2,  offset)) stack context
-  | DW_OP_breg3  offset -> eval (DW_OP_bregx(3,  offset)) stack context
-  | DW_OP_breg4  offset -> eval (DW_OP_bregx(4,  offset)) stack context
-  | DW_OP_breg5  offset -> eval (DW_OP_bregx(5,  offset)) stack context
-  | DW_OP_breg6  offset -> eval (DW_OP_bregx(6,  offset)) stack context
-  | DW_OP_breg7  offset -> eval (DW_OP_bregx(7,  offset)) stack context
-  | DW_OP_breg8  offset -> eval (DW_OP_bregx(8,  offset)) stack context
-  | DW_OP_breg9  offset -> eval (DW_OP_bregx(9,  offset)) stack context
-  | DW_OP_breg10 offset -> eval (DW_OP_bregx(10, offset)) stack context
-  | DW_OP_breg11 offset -> eval (DW_OP_bregx(11, offset)) stack context
-  | DW_OP_breg12 offset -> eval (DW_OP_bregx(12, offset)) stack context
-  | DW_OP_breg13 offset -> eval (DW_OP_bregx(13, offset)) stack context
-  | DW_OP_breg14 offset -> eval (DW_OP_bregx(14, offset)) stack context
-  | DW_OP_breg15 offset -> eval (DW_OP_bregx(15, offset)) stack context
-  | DW_OP_breg16 offset -> eval (DW_OP_bregx(16, offset)) stack context
-  | DW_OP_breg17 offset -> eval (DW_OP_bregx(17, offset)) stack context
-  | DW_OP_breg18 offset -> eval (DW_OP_bregx(18, offset)) stack context
-  | DW_OP_breg19 offset -> eval (DW_OP_bregx(19, offset)) stack context
-  | DW_OP_breg20 offset -> eval (DW_OP_bregx(20, offset)) stack context
-  | DW_OP_breg21 offset -> eval (DW_OP_bregx(21, offset)) stack context
-  | DW_OP_breg22 offset -> eval (DW_OP_bregx(22, offset)) stack context
-  | DW_OP_breg23 offset -> eval (DW_OP_bregx(23, offset)) stack context
-  | DW_OP_breg24 offset -> eval (DW_OP_bregx(24, offset)) stack context
-  | DW_OP_breg25 offset -> eval (DW_OP_bregx(25, offset)) stack context
-  | DW_OP_breg26 offset -> eval (DW_OP_bregx(26, offset)) stack context
-  | DW_OP_breg27 offset -> eval (DW_OP_bregx(27, offset)) stack context
-  | DW_OP_breg28 offset -> eval (DW_OP_bregx(28, offset)) stack context
-  | DW_OP_breg29 offset -> eval (DW_OP_bregx(29, offset)) stack context
-  | DW_OP_breg30 offset -> eval (DW_OP_bregx(30, offset)) stack context
-  | DW_OP_breg31 offset -> eval (DW_OP_bregx(31, offset)) stack context
+  | DW_OP_breg0  offset -> eval_one_simple (DW_OP_bregx(0,  offset)) stack context
+  | DW_OP_breg1  offset -> eval_one_simple (DW_OP_bregx(1,  offset)) stack context
+  | DW_OP_breg2  offset -> eval_one_simple (DW_OP_bregx(2,  offset)) stack context
+  | DW_OP_breg3  offset -> eval_one_simple (DW_OP_bregx(3,  offset)) stack context
+  | DW_OP_breg4  offset -> eval_one_simple (DW_OP_bregx(4,  offset)) stack context
+  | DW_OP_breg5  offset -> eval_one_simple (DW_OP_bregx(5,  offset)) stack context
+  | DW_OP_breg6  offset -> eval_one_simple (DW_OP_bregx(6,  offset)) stack context
+  | DW_OP_breg7  offset -> eval_one_simple (DW_OP_bregx(7,  offset)) stack context
+  | DW_OP_breg8  offset -> eval_one_simple (DW_OP_bregx(8,  offset)) stack context
+  | DW_OP_breg9  offset -> eval_one_simple (DW_OP_bregx(9,  offset)) stack context
+  | DW_OP_breg10 offset -> eval_one_simple (DW_OP_bregx(10, offset)) stack context
+  | DW_OP_breg11 offset -> eval_one_simple (DW_OP_bregx(11, offset)) stack context
+  | DW_OP_breg12 offset -> eval_one_simple (DW_OP_bregx(12, offset)) stack context
+  | DW_OP_breg13 offset -> eval_one_simple (DW_OP_bregx(13, offset)) stack context
+  | DW_OP_breg14 offset -> eval_one_simple (DW_OP_bregx(14, offset)) stack context
+  | DW_OP_breg15 offset -> eval_one_simple (DW_OP_bregx(15, offset)) stack context
+  | DW_OP_breg16 offset -> eval_one_simple (DW_OP_bregx(16, offset)) stack context
+  | DW_OP_breg17 offset -> eval_one_simple (DW_OP_bregx(17, offset)) stack context
+  | DW_OP_breg18 offset -> eval_one_simple (DW_OP_bregx(18, offset)) stack context
+  | DW_OP_breg19 offset -> eval_one_simple (DW_OP_bregx(19, offset)) stack context
+  | DW_OP_breg20 offset -> eval_one_simple (DW_OP_bregx(20, offset)) stack context
+  | DW_OP_breg21 offset -> eval_one_simple (DW_OP_bregx(21, offset)) stack context
+  | DW_OP_breg22 offset -> eval_one_simple (DW_OP_bregx(22, offset)) stack context
+  | DW_OP_breg23 offset -> eval_one_simple (DW_OP_bregx(23, offset)) stack context
+  | DW_OP_breg24 offset -> eval_one_simple (DW_OP_bregx(24, offset)) stack context
+  | DW_OP_breg25 offset -> eval_one_simple (DW_OP_bregx(25, offset)) stack context
+  | DW_OP_breg26 offset -> eval_one_simple (DW_OP_bregx(26, offset)) stack context
+  | DW_OP_breg27 offset -> eval_one_simple (DW_OP_bregx(27, offset)) stack context
+  | DW_OP_breg28 offset -> eval_one_simple (DW_OP_bregx(28, offset)) stack context
+  | DW_OP_breg29 offset -> eval_one_simple (DW_OP_bregx(29, offset)) stack context
+  | DW_OP_breg30 offset -> eval_one_simple (DW_OP_bregx(30, offset)) stack context
+  | DW_OP_breg31 offset -> eval_one_simple (DW_OP_bregx(31, offset)) stack context
 
   | DW_OP_undefined -> Loc(Undefined, 0)::stack
 
@@ -514,28 +515,34 @@ let rec eval op stack context =
   (* Handled in the upper level.  *)
   | DW_OP_skip(n) | DW_OP_bra(n) -> stack
 
-(* Evaluate the given list of DWARF operators using the given stack.  *)
-and eval_all ops stack context =
+(* Evaluate a single DWARF operator using the given stack.  *)
+and eval_one ops stack context =
   match ops with
-  | [] -> stack
+  | [] -> (ops, stack, context)
 
   | DW_OP_skip(n)::ops' ->
      (* DW_OP_skip is a control flow operator that requires access to
         the complete DWARF expression to be able skip a number of
         operators.  Hence, handle it here.  Without loss of
         generality, we support skipping forward only.  *)
-     eval_all (discard n ops') stack context
+     ((discard n ops'), stack, context)
 
   | DW_OP_bra(n)::ops' ->
      (match stack with
       | v::stack' ->
          if as_value v == 0 then
-           eval_all ops' stack' context
+           (ops', stack', context)
          else
-           eval_all (discard n ops') stack' context
+           ((discard n ops'), stack', context)
       | _ -> eval_error (DW_OP_bra(n)) stack)
 
-  | op::ops' -> eval_all ops' (eval op stack context) context
+  | op::ops' -> (ops', (eval_one_simple op stack context), context)
+
+(* Evaluate the given list of DWARF operators using the given stack.  *)
+and eval_all ops stack context =
+  match eval_one ops stack context with
+  | ([], stack', _) -> stack'
+  | (ops', stack', context') -> eval_all ops' stack' context'
 
 (* Evaluate the given list of DWARF operators using an initially empty
    stack, return the top element.  *)

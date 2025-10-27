@@ -12,3 +12,4 @@ and dwarf_op = [%import: Dwarf_locstack.dwarf_op]
 (* Add some types not present in Dwarf_locstack but useful with sexp *)
 type context_t = (context_item list) [@@deriving sexp]
 type locexpr_t = (dwarf_op list) [@@deriving sexp]
+type stack_t = (stack_element list) [@@deriving sexp]

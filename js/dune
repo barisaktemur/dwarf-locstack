@@ -6,7 +6,7 @@
 (executable
   (name dwarf_locstack_js)
   (modules dwarf_locstack_js)
-  (libraries dwarf_locstack_sexp sexplib)
+  (libraries dwarf_locstack_sexp sexplib str)
   (modes js)
   (preprocess (pps js_of_ocaml-ppx)))
 (rule

@@ -7,16 +7,127 @@
 html {
     font-family: Calibri, sans-serif;
 }
+h1, h2, h3, h4 {
+    margin: 0;
+}
+h2 {
+    display: flex;
+    margin-top: 1em;
+}
+h2::before,
+h2::after {
+    flex: 1 1 auto;
+    margin: auto;
+    height: 1px;
+    border-top: 2px solid black;
+    content: '';
+}
+h2::before {
+    margin-right: 2%;
+}
+h2::after {
+    margin-left: 2%;
+}
+h3 {
+    margin-top: 0.5em;
+}
 .center {
     margin-left: auto;
     margin-right: auto;
     padding: 1% 5%;
+    max-width: 45rem;
+}
+textarea,
+.textarea {
+    margin: 0;
+    padding: 5px;
+    border: 1px solid gray;
+    border-radius: 3px;
+    overflow: auto;
+    box-sizing: border-box;
+}
+textarea {
+    width: 100%;
+    resize: vertical;
 }
 input[type="range"] {
     width: 100%;
 }
 button {
     padding: 1em;
+    width: 100%;
+    font-weight: bold;
+}
+details {
+    margin-bottom: 1em;
+}
+#output {
+    font-family: monospace;
+}
+.trace_step {
+    display: block;
+    margin-bottom: 1em;
+}
+.trace_step_op::before { content: 'stack after '; }
+.trace_step_op::after { content: ':'; }
+.trace_step_stack::after {
+    content: 'bottom';
+    display: block;
+    text-align: center;
+}
+.stack_element {
+    display: block;
+    border-bottom: 1px solid black;
+    margin-top: 2px;
+    margin-left: 2%;
+}
+.stack_element,
+.composite_part {
+    padding: 1px;
+}
+.stack_element_kind::before { content: 'kind='; }
+.value::before { content: 'value='; }
+.location_offset::before { content: 'offset='; }
+.location_storage::before { content: 'storage='; }
+.storage_kind::before { content: 'kind='; }
+.composite_parts {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-content: space-between;
+    align-items: stretch;
+}
+.composite_part {
+    border: 1px solid gray;
+    border-bottom: none;
+    margin: 0 1em;
+}
+.composite_part:last-child {
+    border-bottom: 1px solid gray;
+    margin-bottom: 0.5em;
+}
+.composite_part_start::before { content: 'start='; }
+.composite_part_end::before { content: 'end='; }
+.trace_result::before {
+    display: block;
+    content: 'final result:';
+}
+.stack_element > *::after,
+.composite_part > *::after,
+.trace_result > *::after
+{
+    content: ', ';
+}
+.composite_part > *:last-child::after,
+.stack_element > *:last-child::after,
+.trace_result > *:last-child::after
+{
+    content: '';
+}
+*::before, *::after {
+    color: gray;
+    font-weight: bold;
+    font-size: 0.9em;
 }
 footer {
     color: gray;
@@ -25,28 +136,39 @@ footer {
 </head>
 <body>
 <div class="center">
-    <h2>Context:</h2>
-    <pre id="context"></pre>
-    <h2>Expression:</h2>
-    <textarea id="input" rows="16" cols="80"
+    <h2>Input</h2>
+    <h3>Context</h3>
+    <textarea id="context" rows="16"
         autocapitalize="false" autocomplete="false" autocorrect="false"
         autofocus="true" required="true" spellcheck="false" wrap="off"
-        placeholder="; Expression to evaluate:&#10;DW_OP_reg 4&#10;DW_OP_const 1&#10;DW_OP_offset&#10;; ..."></textarea>
+        ></textarea>
+    <h3>Expression</h3>
+    <textarea id="input" rows="16"
+        autocapitalize="false" autocomplete="false" autocorrect="false"
+        autofocus="true" required="true" spellcheck="false" wrap="off"
+        ></textarea>
     <div><button id="eval">Evaluate</button></div>
-    <h2>Preprocessed Input:</h2>
-    <pre id="preprocessed"></pre>
-    <h2>Result:</h2>
-    <pre id="output"></pre>
-    <hr style="margin-top: 2em;">
+    <h2>Output</h2>
+    <h3>Preprocessed Input</h3>
+    <pre class="textarea" id="preprocessed">
+    </pre>
+    <h3>Evaluation Trace</h3>
+    <div id="output"></div>
     <h2>Notes</h2>
-    <h3>Source</h3>
+    <h4>Source</h4>
     <p>
     This is generated from Baris' interpreter at
     <a href="https://github.com/barisaktemur/dwarf-locstack/blob/main/dwarf_locstack.ml">barisaktemur/dwarf-locstack</a>
     using <a href="https://github.com/ocsigen/js_of_ocaml">ocsigen/js_of_ocaml</a>.
     The set of implemented operations is the same as the set of constructors for <tt>type dwarf_op</tt> there.
     </p>
-    <h3>Input Syntax</h3>
+    <details>
+        <summary>Supported Ops (<tt>type dwarf_op</tt>)</summary>
+        <pre>
+        SUPPORTED_OPS
+        </pre>
+    </details>
+    <h4>Input Syntax</h4>
     <p>
     The (simplified) input format is one DWARF operation per line, with
     space-delimited parameters. Comments begin with <tt>;</tt> and extend to
@@ -66,11 +188,15 @@ footer {
 </div>
 </body>
 <script defer>
+    let context = document.getElementById('context');
     let input = document.getElementById('input');
     let evalButton = document.getElementById('eval');
-    if (window.location.hash)
-        input.value = decodeURIComponent(window.location.hash.substr(1));
-    evalButton.addEventListener('click', (ev) => { window.location.hash = encodeURIComponent(input.value); });
+    evalButton.addEventListener('click', (ev) => {
+        let url = new URL(window.location.href);
+        url.searchParams.set('context', context.value);
+        url.searchParams.set('input', input.value);
+        window.history.replaceState({}, '', url.toString());
+    });
 </script>
 <script defer src="dwarf_locstack_js.bc.js"></script>
 </html>
