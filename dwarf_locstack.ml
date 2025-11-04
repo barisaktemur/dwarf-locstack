@@ -93,6 +93,15 @@ type dwarf_op =
 
   | DW_OP_addr of int
   | DW_OP_reg of int
+  | DW_OP_reg0  | DW_OP_reg1  | DW_OP_reg2  | DW_OP_reg3
+  | DW_OP_reg4  | DW_OP_reg5  | DW_OP_reg6  | DW_OP_reg7
+  | DW_OP_reg8  | DW_OP_reg9  | DW_OP_reg10 | DW_OP_reg11
+  | DW_OP_reg12 | DW_OP_reg13 | DW_OP_reg14 | DW_OP_reg15
+  | DW_OP_reg16 | DW_OP_reg17 | DW_OP_reg18 | DW_OP_reg19
+  | DW_OP_reg20 | DW_OP_reg21 | DW_OP_reg22 | DW_OP_reg23
+  | DW_OP_reg24 | DW_OP_reg25 | DW_OP_reg26 | DW_OP_reg27
+  | DW_OP_reg28 | DW_OP_reg29 | DW_OP_reg30 | DW_OP_reg31
+
   | DW_OP_breg of int * int
   | DW_OP_undefined
   | DW_OP_implicit_value of int * data
@@ -320,6 +329,38 @@ let rec eval op stack context =
   | DW_OP_addr(a) -> Loc(Mem 0, a)::stack
 
   | DW_OP_reg(n) -> Loc(Reg n, 0)::stack
+  | DW_OP_reg0  -> Loc(Reg 0, 0)::stack
+  | DW_OP_reg1  -> Loc(Reg 1, 0)::stack
+  | DW_OP_reg2  -> Loc(Reg 2, 0)::stack
+  | DW_OP_reg3  -> Loc(Reg 3, 0)::stack
+  | DW_OP_reg4  -> Loc(Reg 4, 0)::stack
+  | DW_OP_reg5  -> Loc(Reg 5, 0)::stack
+  | DW_OP_reg6  -> Loc(Reg 6, 0)::stack
+  | DW_OP_reg7  -> Loc(Reg 7, 0)::stack
+  | DW_OP_reg8  -> Loc(Reg 8, 0)::stack
+  | DW_OP_reg9  -> Loc(Reg 9, 0)::stack
+  | DW_OP_reg10 -> Loc(Reg 10, 0)::stack
+  | DW_OP_reg11 -> Loc(Reg 11, 0)::stack
+  | DW_OP_reg12 -> Loc(Reg 12, 0)::stack
+  | DW_OP_reg13 -> Loc(Reg 13, 0)::stack
+  | DW_OP_reg14 -> Loc(Reg 14, 0)::stack
+  | DW_OP_reg15 -> Loc(Reg 15, 0)::stack
+  | DW_OP_reg16 -> Loc(Reg 16, 0)::stack
+  | DW_OP_reg17 -> Loc(Reg 17, 0)::stack
+  | DW_OP_reg18 -> Loc(Reg 18, 0)::stack
+  | DW_OP_reg19 -> Loc(Reg 19, 0)::stack
+  | DW_OP_reg20 -> Loc(Reg 20, 0)::stack
+  | DW_OP_reg21 -> Loc(Reg 21, 0)::stack
+  | DW_OP_reg22 -> Loc(Reg 22, 0)::stack
+  | DW_OP_reg23 -> Loc(Reg 23, 0)::stack
+  | DW_OP_reg24 -> Loc(Reg 24, 0)::stack
+  | DW_OP_reg25 -> Loc(Reg 25, 0)::stack
+  | DW_OP_reg26 -> Loc(Reg 26, 0)::stack
+  | DW_OP_reg27 -> Loc(Reg 27, 0)::stack
+  | DW_OP_reg28 -> Loc(Reg 28, 0)::stack
+  | DW_OP_reg29 -> Loc(Reg 29, 0)::stack
+  | DW_OP_reg30 -> Loc(Reg 30, 0)::stack
+  | DW_OP_reg31 -> Loc(Reg 31, 0)::stack
 
   | DW_OP_breg(n, offset) ->
      let reg_contents = fetch_int context ((Reg n), 0)
