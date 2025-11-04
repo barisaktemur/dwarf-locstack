@@ -102,7 +102,7 @@ type dwarf_op =
   | DW_OP_reg24 | DW_OP_reg25 | DW_OP_reg26 | DW_OP_reg27
   | DW_OP_reg28 | DW_OP_reg29 | DW_OP_reg30 | DW_OP_reg31
 
-  | DW_OP_breg of int * int
+  | DW_OP_bregx of int * int
   | DW_OP_undefined
   | DW_OP_implicit_value of int * data
   | DW_OP_stack_value
@@ -362,7 +362,7 @@ let rec eval op stack context =
   | DW_OP_reg30 -> Loc(Reg 30, 0)::stack
   | DW_OP_reg31 -> Loc(Reg 31, 0)::stack
 
-  | DW_OP_breg(n, offset) ->
+  | DW_OP_bregx(n, offset) ->
      let reg_contents = fetch_int context ((Reg n), 0)
      in let address = reg_contents + offset
         in Loc(Mem 0, address)::stack
@@ -773,7 +773,7 @@ let _ =
 
 (* z is located 12 bytes away from p's pointee.  *)
 let _ =
-  let z_locexpr = [DW_OP_breg(5, 12)] in
+  let z_locexpr = [DW_OP_bregx(5, 12)] in
   let z_loc = eval_to_loc z_locexpr context in
   let z_addr = dbg_addr_of z_loc in
   let z_val = fetch_int context z_loc in
