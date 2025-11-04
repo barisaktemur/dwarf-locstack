@@ -64,7 +64,7 @@ type stack_element =
   | Loc of location
 
 type dwarf_op =
-  | DW_OP_const of int
+  | DW_OP_const4s of int
   | DW_OP_lit0  | DW_OP_lit1  | DW_OP_lit2  | DW_OP_lit3
   | DW_OP_lit4  | DW_OP_lit5  | DW_OP_lit6  | DW_OP_lit7
   | DW_OP_lit8  | DW_OP_lit9  | DW_OP_lit10 | DW_OP_lit11
@@ -211,7 +211,7 @@ let as_loc element =
 (* Evaluate a single DWARF operator using the given stack.  *)
 let rec eval op stack context =
   match op with
-  | DW_OP_const(x) -> Val(x)::stack
+  | DW_OP_const4s(x) -> Val(x)::stack
 
   | DW_OP_lit0  -> Val(0)::stack
   | DW_OP_lit1  -> Val(1)::stack
@@ -524,8 +524,8 @@ let test_error lambda message =
 
 (* Simple stack operations.  *)
 let _ =
-  test (eval_all [DW_OP_const 9;
-                  DW_OP_const 5] [] context) [Val 5; Val 9] "DW_OP_const"
+  test (eval_all [DW_OP_const4s 9;
+                  DW_OP_const4s 5] [] context) [Val 5; Val 9] "DW_OP_const"
 
 let _ =
   test (eval_all [DW_OP_lit9;
@@ -937,7 +937,7 @@ let _ =
   let overlay_locexpr = [DW_OP_reg 3;
                          DW_OP_reg 4; DW_OP_lit7; DW_OP_offset;
                          DW_OP_lit0;
-                         DW_OP_const width;
+                         DW_OP_const4s width;
                          DW_OP_overlay] in
   let overlay_loc = eval_to_loc overlay_locexpr context in
   test overlay_loc
@@ -961,7 +961,7 @@ let _ =
   let overlay_locexpr = [DW_OP_reg 1;
                          DW_OP_reg 2;
                          DW_OP_lit0;
-                         DW_OP_const reg_size;
+                         DW_OP_const4s reg_size;
                          DW_OP_overlay] in
   let overlay_loc = eval_to_loc overlay_locexpr context in
   test overlay_loc
@@ -1086,7 +1086,7 @@ let _ =
   let overlay_locexpr = [DW_OP_reg 1;
                          DW_OP_reg 2;
                          DW_OP_lit0;
-                         DW_OP_const (reg_size + 1);
+                         DW_OP_const4s (reg_size + 1);
                          DW_OP_overlay] in
   test_error (fun () -> eval_to_loc overlay_locexpr context)
     "overlay: width is larger than overlay"
@@ -1107,7 +1107,7 @@ let _ =
   let overlay_locexpr = [DW_OP_reg 1;
                          DW_OP_reg 2; DW_OP_lit2; DW_OP_offset;
                          DW_OP_lit0;
-                         DW_OP_const (reg_size - 1);
+                         DW_OP_const4s (reg_size - 1);
                          DW_OP_overlay] in
   test_error (fun () -> eval_to_loc overlay_locexpr context)
     "overlay: width is larger than overlay, non-zero overlay offset"
@@ -1129,7 +1129,7 @@ let _ =
   let overlay_locexpr = [DW_OP_composite;
                          DW_OP_reg 2;
                          DW_OP_lit0;
-                         DW_OP_const reg_size;
+                         DW_OP_const4s reg_size;
                          DW_OP_overlay] in
   let overlay_loc = eval_to_loc overlay_locexpr context in
   test overlay_loc
@@ -1153,7 +1153,7 @@ let _ =
   let overlay_locexpr = [DW_OP_composite;
                          DW_OP_reg 2;
                          DW_OP_lit3;
-                         DW_OP_const reg_size;
+                         DW_OP_const4s reg_size;
                          DW_OP_overlay] in
   let overlay_loc = eval_to_loc overlay_locexpr context in
   test overlay_loc
@@ -1177,7 +1177,7 @@ let _ =
 let _ =
   let overlay_locexpr = [DW_OP_reg 4; DW_OP_lit23; DW_OP_offset;
                          DW_OP_reg 7; DW_OP_lit7; DW_OP_offset;
-                         DW_OP_const (-10);
+                         DW_OP_const4s (-10);
                          DW_OP_lit6;
                          DW_OP_overlay] in
   let overlay_loc = eval_to_loc overlay_locexpr context in
@@ -1203,7 +1203,7 @@ let _ =
 let _ =
   let overlay_locexpr = [DW_OP_reg 4; DW_OP_lit23; DW_OP_offset;
                          DW_OP_reg 7; DW_OP_lit3; DW_OP_offset;
-                         DW_OP_const (-23);
+                         DW_OP_const4s (-23);
                          DW_OP_lit6;
                          DW_OP_overlay] in
   let overlay_loc = eval_to_loc overlay_locexpr context in
@@ -1227,7 +1227,7 @@ let _ =
 let _ =
   let overlay_locexpr = [DW_OP_reg 4; DW_OP_lit15; DW_OP_offset;
                          DW_OP_reg 7; DW_OP_lit3; DW_OP_offset;
-                         DW_OP_const (-20);
+                         DW_OP_const4s (-20);
                          DW_OP_lit6;
                          DW_OP_overlay] in
   test_error (fun () -> eval_to_loc overlay_locexpr context)
