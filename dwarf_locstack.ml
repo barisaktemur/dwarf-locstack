@@ -694,14 +694,14 @@ let _ =
 
 (* y is an integer in register 1.  *)
 let _ =
-  let y_locexpr = [DW_OP_reg 1] in
+  let y_locexpr = [DW_OP_reg1] in
   let y_loc = eval_to_loc y_locexpr context in
   let y_val = fetch_int context y_loc in
   test y_val 1001 "value of y"
 
 (* p is a pointer to x and is located in register 5.  *)
 let _ =
-  let p_locexpr = [DW_OP_reg 5] in
+  let p_locexpr = [DW_OP_reg5] in
   let p_loc = eval_to_loc p_locexpr context in
   let p_val = fetch_int context p_loc in
   let p_deref_val = dbg_deref p_loc context in
@@ -717,7 +717,7 @@ let _ =
 
 (* Use DW_OP_reg and double deref p for the same as above.  *)
 let _ =
-  let pointee_expr = [DW_OP_reg 5; DW_OP_deref; DW_OP_deref] in
+  let pointee_expr = [DW_OP_reg5; DW_OP_deref; DW_OP_deref] in
   let pointee_val = eval0 pointee_expr context in
   test pointee_val (Val 104) "double DW_OP_deref a DW_OP_reg"
 
@@ -732,14 +732,14 @@ let _ =
 (* ip is an implicit pointer to a variable that has been promoted to
    register 3.  *)
 let _ =
-  let ip_locexpr = [DW_OP_implicit_pointer ([DW_OP_reg 3], 0)] in
+  let ip_locexpr = [DW_OP_implicit_pointer ([DW_OP_reg3], 0)] in
   let ip_loc = eval_to_loc ip_locexpr context in
   let ip_deref_val = dbg_deref ip_loc context in
   test ip_deref_val 1003 "value of *ip, pointing to register"
 
 (* v is a vectorized integer in register 4.  *)
 let _ =
-  let v_locexpr = [DW_OP_reg 4;
+  let v_locexpr = [DW_OP_reg4;
                    DW_OP_push_lane;
                    DW_OP_lit4;
                    DW_OP_mul;
@@ -780,7 +780,7 @@ let _ =
 (* Another approach for the same thing.  *)
 let _ =
   let z_locexpr = [DW_OP_addr 0;
-                   DW_OP_reg 5;
+                   DW_OP_reg5;
                    DW_OP_deref;
                    DW_OP_offset;
                    DW_OP_lit12;
@@ -808,9 +808,9 @@ let _ =
                    DW_OP_piece 4;
                    DW_OP_implicit_pointer ([DW_OP_addr 4], 0);
                    DW_OP_piece 4;
-                   DW_OP_reg 2;
+                   DW_OP_reg2;
                    DW_OP_piece 4;
-                   DW_OP_reg 3;
+                   DW_OP_reg3;
                    DW_OP_piece 4;
                    DW_OP_implicit_value (4, int_to_data 333);
                    DW_OP_piece 4] in
@@ -851,7 +851,7 @@ let _ =
   let array_locexpr = [DW_OP_composite;
                        DW_OP_addr 24;
                        DW_OP_piece 8;
-                       DW_OP_reg 6;
+                       DW_OP_reg6;
                        DW_OP_piece 4;
                        DW_OP_addr (24 + 12);
                        DW_OP_piece 4] in
@@ -886,7 +886,7 @@ let _ =
  *)
 let _ =
   let overlay_locexpr = [DW_OP_addr 24;
-                         DW_OP_reg 6;
+                         DW_OP_reg6;
                          DW_OP_lit8;
                          DW_OP_lit4;
                          DW_OP_overlay] in
@@ -923,8 +923,8 @@ let vreg_size = data_size (Reg 4) context
   composite:     |bbbbbbbbyyyyyybbbbbbbbbbbbbbbbbb|
  *)
 let _ =
-  let overlay_locexpr = [DW_OP_reg 4; DW_OP_lit3; DW_OP_offset;
-                         DW_OP_reg 7; DW_OP_lit7; DW_OP_offset;
+  let overlay_locexpr = [DW_OP_reg4; DW_OP_lit3; DW_OP_offset;
+                         DW_OP_reg7; DW_OP_lit7; DW_OP_offset;
                          DW_OP_lit5;
                          DW_OP_lit6;
                          DW_OP_overlay] in
@@ -949,8 +949,8 @@ let _ =
   composite:     |bbbbbbbbbbbbbbbbbbbbbbbbbbyyyyyy|
  *)
 let _ =
-  let overlay_locexpr = [DW_OP_reg 4; DW_OP_lit3; DW_OP_offset;
-                         DW_OP_reg 7; DW_OP_lit7; DW_OP_offset;
+  let overlay_locexpr = [DW_OP_reg4; DW_OP_lit3; DW_OP_offset;
+                         DW_OP_reg7; DW_OP_lit7; DW_OP_offset;
                          DW_OP_lit23;
                          DW_OP_lit6;
                          DW_OP_overlay] in
@@ -975,8 +975,8 @@ let _ =
  *)
 let _ =
   let width = 13 in
-  let overlay_locexpr = [DW_OP_reg 3;
-                         DW_OP_reg 4; DW_OP_lit7; DW_OP_offset;
+  let overlay_locexpr = [DW_OP_reg3;
+                         DW_OP_reg4; DW_OP_lit7; DW_OP_offset;
                          DW_OP_lit0;
                          DW_OP_const4s width;
                          DW_OP_overlay] in
@@ -999,8 +999,8 @@ let _ =
   composite:    |yyyy|
  *)
 let _ =
-  let overlay_locexpr = [DW_OP_reg 1;
-                         DW_OP_reg 2;
+  let overlay_locexpr = [DW_OP_reg1;
+                         DW_OP_reg2;
                          DW_OP_lit0;
                          DW_OP_const4s reg_size;
                          DW_OP_overlay] in
@@ -1023,8 +1023,8 @@ let _ =
   composite:     |bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbUUyyyyyy|
  *)
 let _ =
-  let overlay_locexpr = [DW_OP_reg 4; DW_OP_lit3; DW_OP_offset;
-                         DW_OP_reg 7; DW_OP_lit7; DW_OP_offset;
+  let overlay_locexpr = [DW_OP_reg4; DW_OP_lit3; DW_OP_offset;
+                         DW_OP_reg7; DW_OP_lit7; DW_OP_offset;
                          DW_OP_lit31;
                          DW_OP_lit6;
                          DW_OP_overlay] in
@@ -1049,8 +1049,8 @@ let _ =
   composite:     |bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbyyyyyy|
  *)
 let _ =
-  let overlay_locexpr = [DW_OP_reg 4; DW_OP_lit3; DW_OP_offset;
-                         DW_OP_reg 7; DW_OP_lit7; DW_OP_offset;
+  let overlay_locexpr = [DW_OP_reg4; DW_OP_lit3; DW_OP_offset;
+                         DW_OP_reg7; DW_OP_lit7; DW_OP_offset;
                          DW_OP_lit29;
                          DW_OP_lit6;
                          DW_OP_overlay] in
@@ -1076,8 +1076,8 @@ let _ =
   composite:     |bbbbbbbbbbbbbbbbbbbbbbbbbbbbbyyyyyy|
  *)
 let _ =
-  let overlay_locexpr = [DW_OP_reg 4; DW_OP_lit3; DW_OP_offset;
-                         DW_OP_reg 7; DW_OP_lit7; DW_OP_offset;
+  let overlay_locexpr = [DW_OP_reg4; DW_OP_lit3; DW_OP_offset;
+                         DW_OP_reg7; DW_OP_lit7; DW_OP_offset;
                          DW_OP_lit26;
                          DW_OP_lit6;
                          DW_OP_overlay] in
@@ -1101,8 +1101,8 @@ let _ =
   composite:     |bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb|
  *)
 let _ =
-  let overlay_locexpr = [DW_OP_reg 4; DW_OP_lit3; DW_OP_offset;
-                         DW_OP_reg 7; DW_OP_lit7; DW_OP_offset;
+  let overlay_locexpr = [DW_OP_reg4; DW_OP_lit3; DW_OP_offset;
+                         DW_OP_reg7; DW_OP_lit7; DW_OP_offset;
                          DW_OP_lit26;
                          DW_OP_lit0;
                          DW_OP_overlay] in
@@ -1124,8 +1124,8 @@ let _ =
   composite:    N/A
  *)
 let _ =
-  let overlay_locexpr = [DW_OP_reg 1;
-                         DW_OP_reg 2;
+  let overlay_locexpr = [DW_OP_reg1;
+                         DW_OP_reg2;
                          DW_OP_lit0;
                          DW_OP_const4s (reg_size + 1);
                          DW_OP_overlay] in
@@ -1145,8 +1145,8 @@ let _ =
   composite:    N/A
  *)
 let _ =
-  let overlay_locexpr = [DW_OP_reg 1;
-                         DW_OP_reg 2; DW_OP_lit2; DW_OP_offset;
+  let overlay_locexpr = [DW_OP_reg1;
+                         DW_OP_reg2; DW_OP_lit2; DW_OP_offset;
                          DW_OP_lit0;
                          DW_OP_const4s (reg_size - 1);
                          DW_OP_overlay] in
@@ -1168,7 +1168,7 @@ let _ =
  *)
 let _ =
   let overlay_locexpr = [DW_OP_composite;
-                         DW_OP_reg 2;
+                         DW_OP_reg2;
                          DW_OP_lit0;
                          DW_OP_const4s reg_size;
                          DW_OP_overlay] in
@@ -1192,7 +1192,7 @@ let _ =
  *)
 let _ =
   let overlay_locexpr = [DW_OP_composite;
-                         DW_OP_reg 2;
+                         DW_OP_reg2;
                          DW_OP_lit3;
                          DW_OP_const4s reg_size;
                          DW_OP_overlay] in
@@ -1216,8 +1216,8 @@ let _ =
   composite:     |bbbbbbbbbbbbbyyyyyybbbbbbbbbbbbb|
  *)
 let _ =
-  let overlay_locexpr = [DW_OP_reg 4; DW_OP_lit23; DW_OP_offset;
-                         DW_OP_reg 7; DW_OP_lit7; DW_OP_offset;
+  let overlay_locexpr = [DW_OP_reg4; DW_OP_lit23; DW_OP_offset;
+                         DW_OP_reg7; DW_OP_lit7; DW_OP_offset;
                          DW_OP_const4s (-10);
                          DW_OP_lit6;
                          DW_OP_overlay] in
@@ -1242,8 +1242,8 @@ let _ =
   composite:     |yyyyyybbbbbbbbbbbbbbbbbbbbbbbbbb|
  *)
 let _ =
-  let overlay_locexpr = [DW_OP_reg 4; DW_OP_lit23; DW_OP_offset;
-                         DW_OP_reg 7; DW_OP_lit3; DW_OP_offset;
+  let overlay_locexpr = [DW_OP_reg4; DW_OP_lit23; DW_OP_offset;
+                         DW_OP_reg7; DW_OP_lit3; DW_OP_offset;
                          DW_OP_const4s (-23);
                          DW_OP_lit6;
                          DW_OP_overlay] in
@@ -1266,8 +1266,8 @@ let _ =
   composite: N/A
  *)
 let _ =
-  let overlay_locexpr = [DW_OP_reg 4; DW_OP_lit15; DW_OP_offset;
-                         DW_OP_reg 7; DW_OP_lit3; DW_OP_offset;
+  let overlay_locexpr = [DW_OP_reg4; DW_OP_lit15; DW_OP_offset;
+                         DW_OP_reg7; DW_OP_lit3; DW_OP_offset;
                          DW_OP_const4s (-20);
                          DW_OP_lit6;
                          DW_OP_overlay] in
