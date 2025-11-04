@@ -972,25 +972,25 @@ let _ =
   b_offset : 3       v
   b_storage:     |bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb|
 
-  offset   : 32      |------------------------------>
-  width    : 6                                      |------|
+  offset   : 31      |----------------------------->
+  width    : 6                                     |------|
 
-  o_offset : 7                                       v
-  o_storage:                                 |yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy|
+  o_offset : 7                                      v
+  o_storage:                                |yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy|
 
   c_offset :         v
-  composite:     |bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbUUUyyyyyy|
+  composite:     |bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbUUyyyyyy|
  *)
 let _ =
   let overlay_locexpr = [DW_OP_reg 4; DW_OP_const 3; DW_OP_offset;
                          DW_OP_reg 7; DW_OP_const 7; DW_OP_offset;
-                         DW_OP_const 32;
+                         DW_OP_const 31;
                          DW_OP_const 6;
                          DW_OP_overlay] in
   let overlay_loc = eval_to_loc overlay_locexpr context in
   test overlay_loc
-    (Composite [(35, 41, (Reg 7, 7));
-                (32, 35, (Undefined, 0));
+    (Composite [(34, 40, (Reg 7, 7));
+                (32, 34, (Undefined, 0));
                 (0, 32, (Reg 4, 0))], 3)
     "overlay: overlay after base with gap"
 
