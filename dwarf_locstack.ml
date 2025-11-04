@@ -103,6 +103,15 @@ type dwarf_op =
   | DW_OP_reg28 | DW_OP_reg29 | DW_OP_reg30 | DW_OP_reg31
 
   | DW_OP_bregx of int * int
+  | DW_OP_breg0 of int  | DW_OP_breg1 of int  | DW_OP_breg2 of int  | DW_OP_breg3 of int
+  | DW_OP_breg4 of int  | DW_OP_breg5 of int  | DW_OP_breg6 of int  | DW_OP_breg7 of int
+  | DW_OP_breg8 of int  | DW_OP_breg9 of int  | DW_OP_breg10 of int | DW_OP_breg11 of int
+  | DW_OP_breg12 of int | DW_OP_breg13 of int | DW_OP_breg14 of int | DW_OP_breg15 of int
+  | DW_OP_breg16 of int | DW_OP_breg17 of int | DW_OP_breg18 of int | DW_OP_breg19 of int
+  | DW_OP_breg20 of int | DW_OP_breg21 of int | DW_OP_breg22 of int | DW_OP_breg23 of int
+  | DW_OP_breg24 of int | DW_OP_breg25 of int | DW_OP_breg26 of int | DW_OP_breg27 of int
+  | DW_OP_breg28 of int | DW_OP_breg29 of int | DW_OP_breg30 of int | DW_OP_breg31 of int
+
   | DW_OP_undefined
   | DW_OP_implicit_value of int * data
   | DW_OP_stack_value
@@ -366,6 +375,38 @@ let rec eval op stack context =
      let reg_contents = fetch_int context ((Reg n), 0)
      in let address = reg_contents + offset
         in Loc(Mem 0, address)::stack
+  | DW_OP_breg0  offset -> eval (DW_OP_bregx(0,  offset)) stack context
+  | DW_OP_breg1  offset -> eval (DW_OP_bregx(1,  offset)) stack context
+  | DW_OP_breg2  offset -> eval (DW_OP_bregx(2,  offset)) stack context
+  | DW_OP_breg3  offset -> eval (DW_OP_bregx(3,  offset)) stack context
+  | DW_OP_breg4  offset -> eval (DW_OP_bregx(4,  offset)) stack context
+  | DW_OP_breg5  offset -> eval (DW_OP_bregx(5,  offset)) stack context
+  | DW_OP_breg6  offset -> eval (DW_OP_bregx(6,  offset)) stack context
+  | DW_OP_breg7  offset -> eval (DW_OP_bregx(7,  offset)) stack context
+  | DW_OP_breg8  offset -> eval (DW_OP_bregx(8,  offset)) stack context
+  | DW_OP_breg9  offset -> eval (DW_OP_bregx(9,  offset)) stack context
+  | DW_OP_breg10 offset -> eval (DW_OP_bregx(10, offset)) stack context
+  | DW_OP_breg11 offset -> eval (DW_OP_bregx(11, offset)) stack context
+  | DW_OP_breg12 offset -> eval (DW_OP_bregx(12, offset)) stack context
+  | DW_OP_breg13 offset -> eval (DW_OP_bregx(13, offset)) stack context
+  | DW_OP_breg14 offset -> eval (DW_OP_bregx(14, offset)) stack context
+  | DW_OP_breg15 offset -> eval (DW_OP_bregx(15, offset)) stack context
+  | DW_OP_breg16 offset -> eval (DW_OP_bregx(16, offset)) stack context
+  | DW_OP_breg17 offset -> eval (DW_OP_bregx(17, offset)) stack context
+  | DW_OP_breg18 offset -> eval (DW_OP_bregx(18, offset)) stack context
+  | DW_OP_breg19 offset -> eval (DW_OP_bregx(19, offset)) stack context
+  | DW_OP_breg20 offset -> eval (DW_OP_bregx(20, offset)) stack context
+  | DW_OP_breg21 offset -> eval (DW_OP_bregx(21, offset)) stack context
+  | DW_OP_breg22 offset -> eval (DW_OP_bregx(22, offset)) stack context
+  | DW_OP_breg23 offset -> eval (DW_OP_bregx(23, offset)) stack context
+  | DW_OP_breg24 offset -> eval (DW_OP_bregx(24, offset)) stack context
+  | DW_OP_breg25 offset -> eval (DW_OP_bregx(25, offset)) stack context
+  | DW_OP_breg26 offset -> eval (DW_OP_bregx(26, offset)) stack context
+  | DW_OP_breg27 offset -> eval (DW_OP_bregx(27, offset)) stack context
+  | DW_OP_breg28 offset -> eval (DW_OP_bregx(28, offset)) stack context
+  | DW_OP_breg29 offset -> eval (DW_OP_bregx(29, offset)) stack context
+  | DW_OP_breg30 offset -> eval (DW_OP_bregx(30, offset)) stack context
+  | DW_OP_breg31 offset -> eval (DW_OP_bregx(31, offset)) stack context
 
   | DW_OP_undefined -> Loc(Undefined, 0)::stack
 
@@ -621,6 +662,12 @@ let _ =
 let _ =
   test (eval_all [DW_OP_regx 123] [] context) [Loc(Reg 123, 0)] "DW_OP_regx"
 
+let _ =
+  test (eval_all [DW_OP_breg5 3] [] context) [Loc(Mem 0, 7)] "DW_OP_breg5"
+
+let _ =
+  test (eval_all [DW_OP_bregx (5, 3)] [] context) [Loc(Mem 0, 7)] "DW_OP_bregx"
+
 (* Simple arithmethic exp test.  *)
 let _ =
   test (eval0 [DW_OP_lit9;
@@ -773,7 +820,7 @@ let _ =
 
 (* z is located 12 bytes away from p's pointee.  *)
 let _ =
-  let z_locexpr = [DW_OP_bregx(5, 12)] in
+  let z_locexpr = [DW_OP_breg5 12] in
   let z_loc = eval_to_loc z_locexpr context in
   let z_addr = dbg_addr_of z_loc in
   let z_val = fetch_int context z_loc in
