@@ -443,6 +443,17 @@ let rec eval_one_simple op stack context =
                             | (s, e, _)::_ -> (e, e + n, loc))
             in Loc(Composite(new_part::parts), off)::stack'
 
+      (* Compatibility rules.  *)
+      | [] ->
+         eval_one_simple op [Loc(Undefined, 0); Loc(Composite([]), 0)] context
+
+      | [Loc(Composite(parts), off)] ->
+         eval_one_simple op [Loc(Undefined, 0); Loc(Composite(parts), off)] context
+
+      | [element] ->
+         eval_one_simple op [element; Loc(Composite([]), 0)] context
+
+      (* Error-checking.  *)
       | _ -> eval_error "DW_OP_piece: need a location and a composite location on stack")
 
   | DW_OP_push_object_location -> Loc(objekt context)::stack
@@ -903,6 +914,36 @@ let _ =
   let r3_data_member_loc = eval_to_loc r3_data_member_locexpr (Object(s_loc)::context) in
   let r3_data_member_val = fetch_int context r3_data_member_loc in
   test r3_data_member_val 1003 ".r3 with an object context"
+
+(* DW_OP_piece compatibility tests.  *)
+let _ =
+  let locexpr = [DW_OP_reg4;
+                 DW_OP_piece 5] in
+  let loc = eval_to_loc locexpr context in
+  test loc (Composite [(0, 5, (Reg 4, 0))], 0)
+    "DW_OP_piece: with a single element"
+
+let _ =
+  let locexpr = [DW_OP_const4s 100;
+                 DW_OP_piece 5] in
+  let loc = eval_to_loc locexpr context in
+  test loc (Composite [(0, 5, (Mem 0, 100))], 0)
+    "DW_OP_piece: with a single element and implicit conversion"
+
+let _ =
+  let locexpr = [DW_OP_piece 5] in
+  let loc = eval_to_loc locexpr context in
+  test loc (Composite [(0, 5, (Undefined, 0))], 0)
+    "DW_OP_piece: on empty stack"
+
+let _ =
+  let locexpr = [DW_OP_composite;
+                 DW_OP_reg4;
+                 DW_OP_piece 5;
+                 DW_OP_piece 3] in
+  let loc = eval_to_loc locexpr context in
+  test loc (Composite [(5, 8, (Undefined, 0)); (0, 5, (Reg 4, 0))], 0)
+    "DW_OP_piece: on a single composite location"
 
 (* An array, whose values are "0123456789ABCDEF".  The elements "89AB"
    are in register 6, the others are in the memory.  This example
