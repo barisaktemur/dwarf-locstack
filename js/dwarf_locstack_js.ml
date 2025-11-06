@@ -120,7 +120,7 @@ and build_output_html_impl result context ops stack =
     )
   in
   match ops' with
-  | [] -> result' ^ span "trace_result" (html_of_location (Dwarf_locstack.as_loc (List.hd stack')))
+  | [] -> result' ^ span "trace_result" (html_of_stack_element (List.hd stack'))
   | _ -> build_output_html_impl result' context' ops' stack'
 
 let _ =
