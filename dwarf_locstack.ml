@@ -154,12 +154,14 @@ let find_part parts offset : location =
   in let (s, e, (part_storage, part_offset)) = part
      in (part_storage, (part_offset + offset - s))
 
-(* Remove parts that don't cover any data.
-   Merge consecutive parts that retrieve data from the same storage.  *)
+(* Simplify composite storage parts.  *)
 let simplify parts =
+  (* Remove parts that don't cover any data.  *)
   let filter acc (s, e, loc) =
     if s < e then (s, e, loc)::acc else acc
   in
+  (* Merge consecutive parts that retrieve data from the same
+     storage with consecutive offsets.  *)
   let merge acc (s, e, (st, off)) =
     match acc with
     | [] -> [(s, e, (st, off))]
@@ -169,9 +171,47 @@ let simplify parts =
        else
          (s, e, (st, off))::acc
   in
+  (* Flatten nested composite storage.  *)
+  let rec flatten parts =
+    match parts with
+    | (s, e, (Composite nested_parts, offset))::parts' ->
+       (* The part defines access to (e - s) bytes starting at offset.
+          All the other bytes of the nested composite storage are
+          unreachable and therefore can be filtered out.  *)
+       let width = e - s in
+       let reachable (p_start, p_end, loc) =
+         p_start < (offset + width) && p_end > offset
+       in
+       let reachable_parts = List.filter reachable nested_parts
+       in
+       (* Trim the parts to contain reachable bytes only.  *)
+       let trim (p_start, p_end, (p_storage, p_offset)) =
+         let new_start = Int.max p_start offset
+         in (new_start,
+             Int.min p_end (offset + width),
+             (p_storage, p_offset + new_start - p_start))
+       in
+       let trimmed_parts = List.map trim reachable_parts
+       in
+       (* Shift the start/end indices according to the containing
+          part's start/end.  *)
+       let nested_end =
+         List.fold_left (fun max (s, e, loc) -> if e > max then e else max) 0 trimmed_parts
+       in
+       let amount = nested_end - e in
+       let shift (p_start, p_end, loc) =
+         (p_start - amount, p_end - amount, loc)
+       in
+       let nested_parts' = List.map shift trimmed_parts
+       in
+       nested_parts'@(flatten parts')
+
+    | part::parts' -> part::(flatten parts')
+    | [] -> []
+  in
   let filtered = List.fold_left filter [] parts in
   let merged = List.fold_left merge [] filtered in
-  List.rev merged
+  flatten (List. rev merged)
 
 let rec read_one_byte context (location: location) =
   let (storage, offset) = location
@@ -1409,6 +1449,98 @@ let _ =
   test overlay_loc
     (Composite [(0, 32, (Reg 4, 0))], 0)
     "simplify composite parts"
+
+(* Nested composites.
+
+          0        9   13 16  20        32
+          v        v   v  v   v         v
+  Reg4:   444444444----444----44444...44
+  Reg7:            7777...
+  Reg0:                   0000
+  Offset:    ^
+
+ *)
+let _ =
+  let overlay_locexpr = [DW_OP_reg4; DW_OP_lit3; DW_OP_offset;
+                         DW_OP_reg7;
+                         DW_OP_lit6;
+                         DW_OP_lit4;
+                         DW_OP_overlay;
+                         DW_OP_reg0;
+                         DW_OP_lit13;
+                         DW_OP_lit4;
+                         DW_OP_overlay] in
+  let overlay_loc = eval_to_loc overlay_locexpr context in
+  test overlay_loc
+    (Composite [(20, 32, (Reg 4, 20));
+                (16, 20, (Reg 0, 0));
+                (13, 16, (Reg 4, 13));
+                (9, 13, (Reg 7, 0));
+                (0, 9, (Reg 4, 0))], 3)
+    "nested composites"
+
+(* Nested composites with overlap.
+
+          0        9 11  15             32
+          v        v v   v              v
+  Reg4:   444444444------4444444444...44
+  Reg7:            7777...
+  Reg0:              0000
+  Offset:    ^
+
+ *)
+let _ =
+  let overlay_locexpr = [DW_OP_reg4; DW_OP_lit3; DW_OP_offset;
+                         DW_OP_reg7;
+                         DW_OP_lit6;
+                         DW_OP_lit4;
+                         DW_OP_overlay;
+                         DW_OP_reg0;
+                         DW_OP_lit8;
+                         DW_OP_lit4;
+                         DW_OP_overlay] in
+  let overlay_loc = eval_to_loc overlay_locexpr context in
+  test overlay_loc
+    (Composite [(15, 32, (Reg 4, 15));
+                (11, 15, (Reg 0, 0));
+                (9, 11, (Reg 7, 0));
+                (0, 9, (Reg 4, 0))], 3)
+    "nested composite with overlap"
+
+(* Nested composites.
+
+          0     6    11      19         32
+          v     v    v       v          v
+Base:
+  Reg7:   777777-------------777777...77
+
+Overlay:
+            0   v    9   13
+  Reg4:     444444444----444444444444...44
+  Reg0:              0000
+
+
+ *)
+let _ =
+  let overlay_locexpr = [DW_OP_reg7; DW_OP_lit3; DW_OP_offset;
+
+                         DW_OP_reg4; DW_OP_lit4; DW_OP_offset;
+                         DW_OP_reg0;
+                         DW_OP_lit5;
+                         DW_OP_lit4;
+                         DW_OP_overlay;
+
+                         DW_OP_lit3;
+                         DW_OP_lit13;
+                         DW_OP_overlay] in
+  let overlay_loc = eval_to_loc overlay_locexpr context in
+  test overlay_loc
+    (Composite [(19, 32, (Reg 7, 19));
+                (15, 19, (Reg 4, 13));
+                (11, 15, (Reg 0, 0));
+                (6, 11, (Reg 4, 4));
+                (0, 6, (Reg 7, 0))], 3)
+    "nested composites"
 
 (****************************)
 (* Print the final result.  *)
