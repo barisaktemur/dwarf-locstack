@@ -1542,7 +1542,7 @@ let _ =
                 (11, 15, (Reg 0, 0));
                 (6, 11, (Reg 4, 4));
                 (0, 6, (Reg 7, 0))], 3)
-    "nested composites"
+    "nested composite variant"
 
 (****************************)
 (* Print the final result.  *)
