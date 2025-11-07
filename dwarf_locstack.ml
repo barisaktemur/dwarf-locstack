@@ -186,9 +186,19 @@ let rec read_one_byte context (location: location) =
        | ImpPointer(_, _) -> raise (UndefinedData(offset))
        | Composite(parts) -> read_one_byte context (find_part parts offset)
 
+let read_one_byte_opt context (location: location) =
+  try
+    Some (read_one_byte context location)
+  with
+  | _ -> None
+
 let fetch_data context (loc: location) length =
   let (storage, offset) = loc
   in String.init length (fun n -> read_one_byte context (storage, (offset + n)))
+
+let fetch_data_opt context (loc: location) length =
+  let (storage, offset) = loc
+  in List.init length (fun n -> read_one_byte_opt context (storage, (offset + n)))
 
 let fetch_int context (loc: location) =
   Int32.to_int (String.get_int32_ne (fetch_data context loc 4) 0)
