@@ -1382,3 +1382,4 @@ let _ =
   Printf.printf "# of passes:\t %d\n" !num_pass;
   Printf.printf "# of failures:\t %d\n" !num_fail;
   Printf.printf "*************************\n";
+  ()
