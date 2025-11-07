@@ -164,7 +164,7 @@ let simplify parts =
     match acc with
     | [] -> [(s, e, (st, off))]
     | (s', e', (st', off'))::acc' ->
-       if e == s' && st == st' && off' == s' then
+       if e == s' && st == st' && (off' - s') == (off - s) then
          (s, e', (st, off))::acc'
        else
          (s, e, (st, off))::acc
@@ -1384,6 +1384,31 @@ let _ =
                          DW_OP_overlay] in
   test_error (fun () -> eval_to_loc overlay_locexpr context)
     "overlay: negative offset, overlay starts before base"
+
+(* Regression tests for simplification of composite storage. *)
+let _ =
+  let overlay_locexpr = [DW_OP_reg4;
+                         DW_OP_reg4; DW_OP_lit10; DW_OP_offset;
+                         DW_OP_lit4;
+                         DW_OP_lit5;
+                         DW_OP_overlay] in
+  let overlay_loc = eval_to_loc overlay_locexpr context in
+  test overlay_loc
+    (Composite [(9, 32, (Reg 4, 9));
+                (4, 9, (Reg 4, 10));
+                (0, 4, (Reg 4, 0))], 0)
+    "do not over simplify composite parts"
+
+let _ =
+  let overlay_locexpr = [DW_OP_reg4;
+                         DW_OP_reg4; DW_OP_lit10; DW_OP_offset;
+                         DW_OP_lit10;
+                         DW_OP_lit5;
+                         DW_OP_overlay] in
+  let overlay_loc = eval_to_loc overlay_locexpr context in
+  test overlay_loc
+    (Composite [(0, 32, (Reg 4, 0))], 0)
+    "simplify composite parts"
 
 (****************************)
 (* Print the final result.  *)
