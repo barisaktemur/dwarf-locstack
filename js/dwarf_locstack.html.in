@@ -177,10 +177,14 @@ footer {
     <h2>Notes</h2>
     <h4>Source</h4>
     <p>
-    This is generated from Baris' interpreter at
-    <a href="https://github.com/barisaktemur/dwarf-locstack/blob/main/dwarf_locstack.ml">barisaktemur/dwarf-locstack</a>
+    This is generated from the DWARF expression evaluator at
+    <a href="https://github.com/barisaktemur/dwarf-locstack/blob/main/dwarf_locstack.ml">barisaktemur/dwarf-locstack</a>.
+    The web playground is implemented by <a href="https://github.com/slinder1">Scott Linder</a>
     using <a href="https://github.com/ocsigen/js_of_ocaml">ocsigen/js_of_ocaml</a>.
-    The set of implemented operations is the same as the set of constructors for <tt>type dwarf_op</tt> there.
+    </p>
+    <p>
+    The set of implemented DWARF operators is the same as the set of constructors
+    for <tt>type dwarf_op</tt> in the expression evaluator.
     </p>
     <details>
         <summary>Supported Ops (<tt>type dwarf_op</tt>)</summary>
