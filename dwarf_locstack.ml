@@ -76,6 +76,10 @@ type context_item =
   | TargetReg of int * data   (* Register num, contents.  *)
   | Lane of int               (* Selected lane.  *)
   | Object of location        (* Current object.  *)
+  (* Operators like DW_OP_call and DW_OP_implicit_pointer refer to the
+     DW_AT_location of a DIE.  These can be specified in the
+     context using DW_AT_location.  *)
+  | DW_AT_location of string * (dwarf_op list) (* Name of DIE and expr.  *)
 
 (* Virtual storage.  *)
 and storage =
@@ -118,6 +122,11 @@ let rec objekt context =
   | Object(loc)::context' -> loc
   | _::context' -> objekt context'
 
+let rec dw_at_location context name =
+  match context with
+  | [] -> failwith ("item '" ^ name ^ "' not found in context")
+  | DW_AT_location(name', expr)::context' when name = name' -> expr
+  | _::context' -> dw_at_location context' name
 
 (* Element kinds for the DWARF expression evaluation stack.
    A stack is simply a list of stack elements.  *)
