@@ -124,7 +124,7 @@ let rec objekt context =
 
 let rec dw_at_location context name =
   match context with
-  | [] -> failwith ("DW_AT_location for " ^ name ^ " not found context")
+  | [] -> failwith ("DW_AT_location for '" ^ name ^ "' not found in context")
   | DW_AT_location(name', expr)::context' when name = name' -> expr
   | _::context' -> dw_at_location context' name
 
