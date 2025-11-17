@@ -7,62 +7,7 @@
 (* Data are a sequence of bytes.  *)
 type data = string
 
-(* Evaluation context.
-   The consumer provides the evaluation context.  *)
-type context_item =
-  | TargetMem of int * data   (* Address space, contents.  *)
-  | TargetReg of int * data   (* Register num, contents.  *)
-  | Lane of int               (* Selected lane.  *)
-  | Object of location        (* Current object.  *)
-
-(* Virtual storage.  *)
-and storage =
-  | Mem of int (* Address space.  *)
-  | Reg of int (* Register number.  *)
-  | Undefined
-  | ImpData of data (* Implicit data.  *)
-  | ImpPointer of location (* Location of the pointed-to object.  *)
-  | Composite of (int * int * location) list (* Parts of the composite.  *)
-
-(* Location is an offset into a storage.  *)
-and location = storage * int
-
-(* Context accessors for convenience.  *)
-let rec mem_data context addr_space =
-  match context with
-  | [] -> failwith "memory not found in context"
-  | TargetMem(sp, data)::context' when sp = addr_space -> data
-  | _::context' -> mem_data context' addr_space
-
-let rec reg_data context num =
-  match context with
-  | [] -> failwith "register not found in context"
-  | TargetReg(n, data)::context' when n = num -> data
-  | _::context' -> reg_data context' num
-
-let rec lane context =
-  match context with
-  (* DWARF spec states "If the current program is not using a
-     SIMD/SIMT execution model, the current lane is always 0."
-     Therefore, return 0 if the lane is not explicitly specified in
-     the context.  *)
-  | [] -> 0
-  | Lane(n)::context' -> n
-  | _::context' -> lane context'
-
-let rec objekt context =
-  match context with
-  | [] -> failwith "object not found in context"
-  | Object(loc)::context' -> loc
-  | _::context' -> objekt context'
-
-
-(* Element kinds for the DWARF expression evaluation stack.
-   A stack is simply a list of stack elements.  *)
-type stack_element =
-  | Val of int
-  | Loc of location
-
+(* Recognized DWARF operators.  *)
 type dwarf_op =
   | DW_OP_const4s of int
   | DW_OP_lit0  | DW_OP_lit1  | DW_OP_lit2  | DW_OP_lit3
@@ -123,6 +68,62 @@ type dwarf_op =
 
   | DW_OP_deref
   | DW_OP_offset
+
+(* Evaluation context.
+   The consumer provides the evaluation context.  *)
+type context_item =
+  | TargetMem of int * data   (* Address space, contents.  *)
+  | TargetReg of int * data   (* Register num, contents.  *)
+  | Lane of int               (* Selected lane.  *)
+  | Object of location        (* Current object.  *)
+
+(* Virtual storage.  *)
+and storage =
+  | Mem of int (* Address space.  *)
+  | Reg of int (* Register number.  *)
+  | Undefined
+  | ImpData of data (* Implicit data.  *)
+  | ImpPointer of location (* Location of the pointed-to object.  *)
+  | Composite of (int * int * location) list (* Parts of the composite.  *)
+
+(* Location is an offset into a storage.  *)
+and location = storage * int
+
+(* Context accessors for convenience.  *)
+let rec mem_data context addr_space =
+  match context with
+  | [] -> failwith "memory not found in context"
+  | TargetMem(sp, data)::context' when sp = addr_space -> data
+  | _::context' -> mem_data context' addr_space
+
+let rec reg_data context num =
+  match context with
+  | [] -> failwith "register not found in context"
+  | TargetReg(n, data)::context' when n = num -> data
+  | _::context' -> reg_data context' num
+
+let rec lane context =
+  match context with
+  (* DWARF spec states "If the current program is not using a
+     SIMD/SIMT execution model, the current lane is always 0."
+     Therefore, return 0 if the lane is not explicitly specified in
+     the context.  *)
+  | [] -> 0
+  | Lane(n)::context' -> n
+  | _::context' -> lane context'
+
+let rec objekt context =
+  match context with
+  | [] -> failwith "object not found in context"
+  | Object(loc)::context' -> loc
+  | _::context' -> objekt context'
+
+
+(* Element kinds for the DWARF expression evaluation stack.
+   A stack is simply a list of stack elements.  *)
+type stack_element =
+  | Val of int
+  | Loc of location
 
 (* What is the size of a virtual storage?  *)
 let data_size storage context =
