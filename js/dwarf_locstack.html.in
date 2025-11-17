@@ -285,6 +285,25 @@ footer {
         DW_OP_lit4 ; overlay size
         DW_OP_overlay
     `);
+    addPreset(
+    'Call',
+    'Example using DW_OP_call',
+    `(
+        (TargetReg 0 "12345678")
+        (DW_AT_location xyz
+          (
+            DW_OP_reg0
+            DW_OP_swap
+            DW_OP_offset
+          )
+        )
+    )`,
+    `
+        DW_OP_lit3
+        DW_OP_lit2
+        DW_OP_plus
+        DW_OP_call xyz
+    `);
 </script>
 <script defer src="dwarf_locstack_js.bc.js"></script>
 </html>
