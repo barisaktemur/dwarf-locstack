@@ -221,10 +221,9 @@ footer {
         url.searchParams.set('input', input.value);
         window.history.replaceState({}, '', url);
     });
-    let dedent = (s) => {
+    let removeEmptyLines = (s) => {
         return s
             .split('\n')
-            .map(l => l.trimStart())
             .filter(l => l !== '')
             .join('\n');
     };
@@ -235,8 +234,8 @@ footer {
         a.innerHTML = shortname;
         a.title = description;
         let url = new URL(originalUrl);
-        url.searchParams.set('context', dedent(ctx));
-        url.searchParams.set('input', dedent(inp));
+        url.searchParams.set('context', removeEmptyLines(ctx));
+        url.searchParams.set('input', removeEmptyLines(inp));
         a.href = url;
         let li = document.createElement('li');
         li.appendChild(a);
@@ -248,61 +247,64 @@ footer {
     'Some value-based arithmetic',
     '()',
     `
-        DW_OP_const4s 40
-        DW_OP_lit2
-        DW_OP_plus
+DW_OP_const4s 40
+DW_OP_lit2
+DW_OP_plus
     `);
     addPreset(
     'Pointer',
     'Dereference memory and form implicit value via pointer found in register',
-    `(
-        (TargetMem 0 "abcdefghijklmnop")
-        (TargetReg 0 "\\004\\000\\000\\000")
-    )`,
     `
-        DW_OP_reg0
-        DW_OP_deref
-        DW_OP_deref
-        DW_OP_stack_value
+(
+  (TargetMem 0 "abcdefghijklmnop")
+  (TargetReg 0 "\\004\\000\\000\\000")
+)`,
+    `
+DW_OP_reg0
+DW_OP_deref
+DW_OP_deref
+DW_OP_stack_value
     `);
     addPreset(
     'Overlay',
     'Example using DW_OP_overlay',
-    `(
-        (TargetMem 0 "abcdefghijklmnop")
-        (TargetReg 0 "CAFE")
-        (TargetReg 1 "ASDF")
-    )`,
     `
-        DW_OP_lit0 ; base
-        DW_OP_reg0 ; overlay
-        DW_OP_lit2 ; overlay offset
-        DW_OP_lit4 ; overlay size
-        DW_OP_overlay
-        ; base is now the composite on top of the stack
-        DW_OP_reg1 ; overlay
-        DW_OP_lit8 ; overlay offset
-        DW_OP_lit4 ; overlay size
-        DW_OP_overlay
+(
+  (TargetMem 0 "abcdefghijklmnop")
+  (TargetReg 0 "CAFE")
+  (TargetReg 1 "ASDF")
+)`,
+    `
+DW_OP_lit0 ; base
+DW_OP_reg0 ; overlay
+DW_OP_lit2 ; overlay offset
+DW_OP_lit4 ; overlay size
+DW_OP_overlay
+; base is now the composite on top of the stack
+DW_OP_reg1 ; overlay
+DW_OP_lit8 ; overlay offset
+DW_OP_lit4 ; overlay size
+DW_OP_overlay
     `);
     addPreset(
     'Call',
     'Example using DW_OP_call',
-    `(
-        (TargetReg 0 "12345678")
-        (DW_AT_location xyz
-          (
-            DW_OP_reg0
-            DW_OP_swap
-            DW_OP_offset
-          )
-        )
-    )`,
     `
-        DW_OP_lit3
-        DW_OP_lit2
-        DW_OP_plus
-        DW_OP_call xyz
+(
+  (TargetReg 0 "12345678")
+  (DW_AT_location xyz
+    (
+      DW_OP_reg0
+      DW_OP_swap
+      DW_OP_offset
+    )
+  )
+)`,
+    `
+DW_OP_lit3
+DW_OP_lit2
+DW_OP_plus
+DW_OP_call xyz
     `);
 </script>
 <script defer src="dwarf_locstack_js.bc.js"></script>
